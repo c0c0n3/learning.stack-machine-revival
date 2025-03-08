@@ -8,16 +8,16 @@ module Lang where
   The AST.
 
   It represents arithmetic expressions involving sums and products.
-  The `Lit` leaf node holds integer literals (constants) like `-3`
-  or `42`. The `Add` inner node holds the left and right hand-side
+  The `Nbr` leaf node holds integer literals (constants) like `-3`
+  or `42`. The `Plus` inner node holds the left and right hand-side
   of an addition operation like `1 + 2` or `(3*4) + (5+(6*7))`.
-  Likewise, `Mul` represents a multiplication op. Notice how the
+  Likewise, `Times` represents a multiplication op. Notice how the
   tree structure neatly works out the problem of tracking operation
   precedence.
 -}
-data Expr = Lit Integer
-          | Add Expr Expr
-          | Mul Expr Expr
+data Expr = Nbr Integer
+          | Plus Expr Expr
+          | Times Expr Expr
     deriving Show
 
 {-
@@ -27,9 +27,9 @@ data Expr = Lit Integer
   respecting operation precedence.
 -}
 eval :: Expr -> Integer
-eval (Lit x)   = x
-eval (Add x y) = eval x + eval y
-eval (Mul x y) = eval x * eval y
+eval (Nbr x)     = x
+eval (Plus x y)  = eval x + eval y
+eval (Times x y) = eval x * eval y
 
 {-
   The EDSL.
@@ -38,7 +38,7 @@ eval (Mul x y) = eval x * eval y
   literals, the usual symbols for arithmetic ops like `+` and `*`,
   plus `(` and `)` symbols to specify operation precedence. For instance,
   `(1 + 2) * 3` is an expression in our language. But how to convert it
-  into its corresponding AST, `Mul (Add (Lit 1) (Lit 2)) (Lit 3)`?
+  into its corresponding AST, `Times (Plus (Nbr 1) (Nbr 2)) (Nbr 3)`?
 
   The Haskell `Num` type class gives us an easy way to do that. If a
   type `T` is an instance of `Num`, then whenever Haskell finds an
@@ -48,22 +48,22 @@ eval (Mul x y) = eval x * eval y
 
   We piggyback on this mechanism to build our AST recursively from a
   symbolic expression. We know that literals like `42` map to leaves
-  like `Lit 42`. So `fromInteger n` must be `Lit n`. That means when
+  like `Nbr 42`. So `fromInteger n` must be `Nbr n`. That means when
   Haskell finds `42 :: Expr`, it'll call our `fromInteger` implementation
-  to return `Lit 42`. What about a sum like `1 + 2 :: Expr`? First,
-  `fromInteger` gets called on `1` and `2`, returning `Lit 1` and
-  `Lit 2`, respectively. Then our implementation of `+` gets called.
+  to return `Nbr 42`. What about a sum like `1 + 2 :: Expr`? First,
+  `fromInteger` gets called on `1` and `2`, returning `Nbr 1` and
+  `Nbr 2`, respectively. Then our implementation of `+` gets called.
   So how should we implement `+`? Well, in our example, we want to
-  convert `1 + 2` to `Add (Lit 1) (Lit 2)`, right? So `(Lit 1) + (Lit 2)`
-  should be equal to `Add (Lit 1) (Lit 2)`. Ha! Then if `x :: Expr` and
+  convert `1 + 2` to `Plus (Nbr 1) (Nbr 2)`, right? So `(Nbr 1) + (Nbr 2)`
+  should be equal to `Plus (Nbr 1) (Nbr 2)`. Ha! Then if `x :: Expr` and
   `y :: Expr` are the arguments to `+`, the function should return
-  `Add x y`. Sweet. The same applies to `*`, but for now we leave out
+  `Plus x y`. Sweet. The same applies to `*`, but for now we leave out
   the other `Num` functions, returning an error.
 -}
 instance Num Expr where
-    fromInteger = Lit
-    x + y       = Add x y
-    x * y       = Mul x y
+    fromInteger = Nbr
+    x + y       = Plus x y
+    x * y       = Times x y
     x - y       = error "sub"
     abs         = error "abs"
     signum      = error "signum"

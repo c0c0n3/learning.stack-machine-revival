@@ -10,9 +10,11 @@ import Lang
   Pretty-print an `Expr` to `stdout`.
   This is another interpreter that turns an AST value into a visual
   representation of a tree. Example:
+  > (1 + 2) * 3 :: Expr
+  Times (Plus (Nbr 1) (Nbr 2)) (Nbr 3)
   > pretty $ (1 + 2) * 3
-  Mul
-    Add
+  *
+    +
       1
       2
     3
@@ -24,9 +26,9 @@ toString :: Expr -> String
 toString = showExpr 0
 
 showExpr :: Int -> Expr -> String
-showExpr indent (Lit x) = pad indent ++ show x ++ "\n"
-showExpr indent (Add x y) = showBranches "Add" indent x y
-showExpr indent (Mul x y) = showBranches "Mul" indent x y
+showExpr indent (Nbr x)     = pad indent ++ show x ++ "\n"
+showExpr indent (Plus x y)  = showBranches "+" indent x y
+showExpr indent (Times x y) = showBranches "*" indent x y
 
 showBranches :: String -> Int -> Expr -> Expr -> String
 showBranches ctor indent x y = pad indent ++ ctor ++ "\n"
