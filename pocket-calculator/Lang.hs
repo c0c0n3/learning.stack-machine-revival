@@ -2,7 +2,10 @@
   An AST for our little arithmetic language and a tiny language
   embedding (EDSL) into Haskell using the Num type class.
 -}
-module Lang where
+module Lang ( Expr(..)
+            , eval
+            )
+    where
 
 {-
   The AST.
