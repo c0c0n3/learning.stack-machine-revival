@@ -23,4 +23,6 @@ import VSM (Instruction(..), MemoryCell(..))
 compile :: Expr -> [MemoryCell]
 compile (Nbr n)     = [Op LIT, Val n]
 compile (Plus x y)  = compile x ++ compile y ++ [Op ADD]
+compile (Minus x y) = compile x ++ compile y ++ [Op SUB]
 compile (Times x y) = compile x ++ compile y ++ [Op MULT]
+compile (Over x y)  = compile x ++ compile y ++ [Op DIV]
