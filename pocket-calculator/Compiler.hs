@@ -3,7 +3,10 @@
   It turns language constructs into a (semantically equivalent) bunch
   of low-level instructions a stack machine knows how to run.
 -}
-module Compiler (compile) where
+module Compiler ( compile
+                , compileToFile
+                )
+    where
 
 import Lang (Expr(..))
 import VSM (Instruction(..), MemoryCell(..))
@@ -26,3 +29,9 @@ compile (Plus x y)  = compile x ++ compile y ++ [Op ADD]
 compile (Minus x y) = compile x ++ compile y ++ [Op SUB]
 compile (Times x y) = compile x ++ compile y ++ [Op MULT]
 compile (Over x y)  = compile x ++ compile y ++ [Op DIV]
+
+{-
+  Same as `compile` but writes the machine instructions to file.
+-}
+compileToFile :: FilePath -> Expr -> IO ()
+compileToFile path = writeFile path . show . compile
