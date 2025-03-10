@@ -25,7 +25,9 @@ module VSM ( Instruction(..)
 -}
 data Instruction = LIT   -- put following (int) value on top of stack
                  | ADD   -- pop twice, add values and push result
+                 | SUB   -- pop twice, subtract values and push result
                  | MULT  -- pop twice, multiply values and push result
+                 | DIV   -- pop twice, (int) divide values and push result
     deriving Show
 
 {-
@@ -59,9 +61,11 @@ run :: [MemoryCell] -> Integer
 run = (\(StackMachine ds pgm) -> exec ds pgm) . newStackMachine
 
 exec :: DataStack -> ProgramMemory -> Integer
-exec ds       (Op LIT : Val x : pgm) = exec ( x      : ds) pgm
-exec (y:x:ds) (Op ADD         : pgm) = exec ((x + y) : ds) pgm
-exec (y:x:ds) (Op MULT        : pgm) = exec ((x * y) : ds) pgm
+exec ds       (Op LIT : Val x : pgm) = exec ( x       : ds) pgm
+exec (y:x:ds) (Op ADD         : pgm) = exec ((x + y)  : ds) pgm
+exec (y:x:ds) (Op SUB         : pgm) = exec ((x - y)  : ds) pgm
+exec (y:x:ds) (Op MULT        : pgm) = exec ((x * y)  : ds) pgm
+exec (y:x:ds) (Op DIV         : pgm) = exec (quot x y : ds) pgm
 exec (x:ds)   []                     = x
 exec _        _                      = error "kaboom!"
 --

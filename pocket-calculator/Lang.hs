@@ -1,26 +1,39 @@
 {-
   An AST for our little arithmetic language and a tiny language
-  embedding (EDSL) into Haskell using the Num type class.
+  embedding (EDSL) into Haskell using the `Num` and `Fractional`
+  type classes.
 -}
 module Lang ( Expr(..)
             , eval
             )
     where
 
+import Data.Ratio (numerator, denominator)
+
+
 {-
   The AST.
 
-  It represents arithmetic expressions involving sums and products.
+  It represents integer arithmetic expressions---a.k.a. arithmetic
+  without fractions. Expressions involve sums, subtractions, products,
+  and divisions among integer values. Since we're only dealing with
+  integers, the result of evaluating an expression should still be
+  an integer. For this reason, `x/y` is an integer division which
+  returns the quotient `q` of Euclidean division of `x` by `y`---i.e.
+  `x = y*q + r, 0 <= r < |y|`.
+
   The `Nbr` leaf node holds integer literals (constants) like `-3`
   or `42`. The `Plus` inner node holds the left and right hand-side
-  of an addition operation like `1 + 2` or `(3*4) + (5+(6*7))`.
-  Likewise, `Times` represents a multiplication op. Notice how the
-  tree structure neatly works out the problem of tracking operation
-  precedence.
+  of an addition operation like `1 + 2` or `3*4 + 6/(9-7)`. Likewise,
+  `Times` represents a multiplication op, `Over` division, and so on.
+  Notice how the tree structure neatly works out the problem of tracking
+  operation precedence.
 -}
 data Expr = Nbr Integer
           | Plus Expr Expr
+          | Minus Expr Expr
           | Times Expr Expr
+          | Over Expr Expr
     deriving Show
 
 {-
@@ -30,9 +43,11 @@ data Expr = Nbr Integer
   respecting operation precedence.
 -}
 eval :: Expr -> Integer
-eval (Nbr x)     = x
-eval (Plus x y)  = eval x + eval y
-eval (Times x y) = eval x * eval y
+eval (Nbr x)      = x
+eval (Plus x y)   = eval x + eval y
+eval (Minus x y)  = eval x - eval y
+eval (Times x y)  = eval x * eval y
+eval (Over x y)   = quot (eval x) (eval y)
 
 {-
   The EDSL.
@@ -60,13 +75,19 @@ eval (Times x y) = eval x * eval y
   convert `1 + 2` to `Plus (Nbr 1) (Nbr 2)`, right? So `(Nbr 1) + (Nbr 2)`
   should be equal to `Plus (Nbr 1) (Nbr 2)`. Ha! Then if `x :: Expr` and
   `y :: Expr` are the arguments to `+`, the function should return
-  `Plus x y`. Sweet. The same applies to `*`, but for now we leave out
-  the other `Num` functions, returning an error.
+  `Plus x y`. Sweet. The same applies to `*` and `-`, but for now we
+  leave out the other `Num` functions, returning an error.
+
+  Similar to `Num`, we use the `Fractional` type class for division.
 -}
 instance Num Expr where
     fromInteger = Nbr
     x + y       = Plus x y
+    x - y       = Minus x y
     x * y       = Times x y
-    x - y       = error "sub"
     abs         = error "abs"
     signum      = error "signum"
+
+instance Fractional Expr where
+    fromRational x = Nbr $ quot (numerator x) (denominator x)
+    x / y          = Over x y
