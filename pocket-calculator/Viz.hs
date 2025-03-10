@@ -28,7 +28,9 @@ toString = showExpr 0
 showExpr :: Int -> Expr -> String
 showExpr indent (Nbr x)     = pad indent ++ show x ++ "\n"
 showExpr indent (Plus x y)  = showBranches "+" indent x y
+showExpr indent (Minus x y) = showBranches "-" indent x y
 showExpr indent (Times x y) = showBranches "*" indent x y
+showExpr indent (Over x y)  = showBranches "/" indent x y
 
 showBranches :: String -> Int -> Expr -> Expr -> String
 showBranches ctor indent x y = pad indent ++ ctor ++ "\n"
