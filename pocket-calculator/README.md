@@ -27,11 +27,19 @@ $ ghci Main
 
 ### Language
 
-We embed a simple arithmetic language into Haskell. We only support
-non-negative integers, addition and multiplication. The `Expr` type
-(an AST) represents language expressions. For example, parsing the
-following arithmetic expression as an `Expr` prints the corresponding
-syntax tree.
+We embed a simple arithmetic language into Haskell. The language
+lets us work with integer arithmetic expressions—a.k.a. arithmetic
+without fractions. Expressions involve sums, subtractions, products,
+and divisions among integer values. Since we're only dealing with
+integers, the result of evaluating an expression should still be an
+integer. For this reason, `x/y` is an integer division which returns
+the quotient `q` of Euclidean division of `x` by `y`—i.e.
+`x = y*q + r, 0 <= r < |y|`. Example: `14/3` yields `4` because
+`14 = 3*4 + 2`.
+
+The `Expr` type (an AST) represents language expressions. For example,
+parsing the following arithmetic expression as an `Expr` prints the
+corresponding syntax tree.
 
 ```
 > 1*(2 + 3) + (4 + 5) :: Expr
@@ -68,10 +76,13 @@ Another interpreter, `pretty`, prints the syntax tree. Example:
 ### Virtual stack machine
 
 We emulate, in software, the hardware of a super simple multiple
-stack 0-operand machine. At the moment the machine can only push
-an integer value on the stack (`LIT` instruction), add or multiply
-the top two stack elements—`ADD` and `MULT`, respectively. Here's
-a program to tell the machine to add `1` and `2`:
+stack 0-operand machine. At the moment the machine can only do integer
+arithmetic. A program can push an integer value on the stack with
+the `LIT` instruction followed by the value. The `ADD` instruction
+adds the top two stack elements. Likewise, the `SUB`, `MULT` and
+`DIV` instructions carry out the corresponding arithmetic ops on
+the top two stack elements. Here's a program to tell the machine
+to add `1` and `2`:
 
 ```
 [Op LIT, Val 1, Op LIT, Val 2, Op ADD]
@@ -84,6 +95,13 @@ If you ask the machine to `run` it, you get back (surprise, surprise!)
 > run [Op LIT, Val 1, Op LIT, Val 2, Op ADD]
 3
 ```
+
+Now, a real computer uses binary instructions. So, something like
+`Op ADD` or `Val 1` would actually be a bunch of zeros and ones you
+load into the machine. That's where we're headed, but for now, we'll
+stick with the current instructions because they're easier to work
+with. When we introduce binary instructions, the above instructions
+will make up our assembly language.
 
 
 ### Compiler
