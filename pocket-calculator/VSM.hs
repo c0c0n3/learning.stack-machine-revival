@@ -6,6 +6,7 @@
 module VSM ( Instruction(..)
            , MemoryCell(..)
            , run
+           , runFromFile
            )
     where
 
@@ -28,7 +29,7 @@ data Instruction = LIT   -- put following (int) value on top of stack
                  | SUB   -- pop twice, subtract values and push result
                  | MULT  -- pop twice, multiply values and push result
                  | DIV   -- pop twice, (int) divide values and push result
-    deriving Show
+    deriving (Show, Read)
 
 {-
   The data stack. We only support integer values.
@@ -39,7 +40,7 @@ type DataStack = [Integer]
   The program memory.
 -}
 data MemoryCell = Op Instruction | Val Integer
-    deriving Show
+    deriving (Show, Read)
 type ProgramMemory = [MemoryCell]
 
 {-
@@ -85,3 +86,12 @@ exec _        _                      = error "kaboom!"
 -- If the program is buggy, you either get an error or the last value
 -- pushed to the stack before program termination.
 --
+
+{-
+  Same as `run` but reads the machine instructions from file.
+-}
+runFromFile :: FilePath -> IO Integer
+runFromFile path = readFile path >>= parse >>= compute
+  where
+    parse   = return . read
+    compute = return . run
