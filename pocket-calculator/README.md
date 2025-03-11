@@ -46,6 +46,28 @@ corresponding syntax tree.
 Plus (Times (Nbr 1) (Plus (Nbr 2) (Nbr 3))) (Plus (Nbr 4) (Nbr 5))
 ```
 
+Embedding a language into another means you can easily take advantage
+of any feature available in the host language and its tools. In our
+case, we get Haskell's strong type system and type checker for free,
+along with a bunch of tools like the REPL and editors that are immediately
+available to programmers using our language. No need to reinvent the
+wheel. We've been using `ghci` as our REPL and Emacs with Haskell
+code editing support. And in case you haven't noticed, Haskell's
+type checker helps keep us from shooting ourselves in the foot:
+
+```
+> 1 + "2" :: Expr
+error:
+    • Couldn't match type ‘[Char]’ with ‘Expr’
+      Expected: Expr
+        Actual: String
+    • In the second argument of ‘(+)’, namely ‘"2"’
+      In the expression: 1 + "2" :: Expr
+> 1 + nonsense :: Expr
+error:
+    Variable not in scope: nonsense :: Expr
+```
+
 
 ### Interpreters
 
@@ -103,6 +125,24 @@ stick with the current instructions because they're easier to work
 with. When we introduce binary instructions, the above instructions
 will make up our assembly language.
 
+Finally, you can parse instructions from a string
+
+```
+> read "[Op LIT,Val 1,Op LIT,Val 2,Op ADD]" :: [MemoryCell]
+[Op LIT,Val 1,Op LIT,Val 2,Op ADD]
+```
+
+and run a program from a file
+
+```
+> :! echo "[Op LIT,Val 1,Op LIT,Val 2,Op ADD]" > program.asm
+> runFromFile "program.asm"
+3
+```
+
+I guess you could think of the machine as an instruction interpreter
+and instructions as an EDSL. OMG, it's turtles all the way down!
+
 
 ### Compiler
 
@@ -119,5 +159,14 @@ If you compile and run the program you get `14`:
 
 ```
 > run . compile $ 1*(2 + 3) + (4 + 5)
+14
+```
+
+You can also output the compiled instructions straight to file and
+then ask the virtual machine to execute the program in the file:
+
+```
+> compileToFile "out.asm" $ 1*(2 + 3) + (4 + 5)
+> runFromFile "out.asm"
 14
 ```
